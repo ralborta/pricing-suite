@@ -1,0 +1,15 @@
+{
+  "name": "WF-01 Intake",
+  "nodes": [
+    { "id": "githubTrigger", "type": "githubTrigger", "name": "GitHub Trigger" },
+    { "id": "imapTrigger", "type": "imapEmail", "name": "IMAP Trigger" },
+    { "id": "driveTrigger", "type": "googleDriveTrigger", "name": "Drive Trigger" },
+    { "id": "validate", "type": "if", "name": "Validar patrón de archivo" },
+    { "id": "uploadStorage", "type": "httpRequest", "name": "Upload Supabase Storage" },
+    { "id": "notifyBFF", "type": "httpRequest", "name": "POST /api/agents/:id/run" },
+    { "id": "startWF02", "type": "workflow", "name": "Start WF-02" }
+  ],
+  "connections": {}
+}
+
+

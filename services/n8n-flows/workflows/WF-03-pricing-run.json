@@ -1,0 +1,15 @@
+{
+  "name": "WF-03 Pricing Run",
+  "nodes": [
+    { "id": "preview", "type": "httpRequest", "name": "ENGINE /pricing/preview" },
+    { "id": "saveArtifacts", "type": "httpRequest", "name": "Guardar artifacts (CSV diff)" },
+    { "id": "decision", "type": "if", "name": "flags críticos o auto_apply=false" },
+    { "id": "notifyReview", "type": "emailSend", "name": "Notificar revisión (UI)" },
+    { "id": "apply", "type": "httpRequest", "name": "ENGINE /pricing/apply" },
+    { "id": "exportCsv", "type": "httpRequest", "name": "Export CSV" },
+    { "id": "notifyDone", "type": "emailSend", "name": "Notificar resultado" }
+  ],
+  "connections": {}
+}
+
+

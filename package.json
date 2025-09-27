@@ -1,0 +1,24 @@
+{
+  "name": "pricing-suite",
+  "private": true,
+  "packageManager": "pnpm@9.12.1",
+  "engines": {
+    "node": ">=18.18.0"
+  },
+  "workspaces": [
+    "apps/*",
+    "services/*",
+    "packages/*"
+  ],
+  "scripts": {
+    "bootstrap": "pnpm install",
+    "dev": "make dev",
+    "dev-dashboard": "pnpm -C apps/dashboard dev",
+    "dev-engine": "make dev-engine",
+    "lint": "echo 'Add linters in apps and packages'",
+    "test": "echo 'Add tests in engine and shared'",
+    "deploy": "echo 'CI/CD through GitHub Actions'"
+  }
+}
+
+

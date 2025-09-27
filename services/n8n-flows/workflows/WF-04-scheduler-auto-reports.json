@@ -1,0 +1,13 @@
+{
+  "name": "WF-04 Scheduler & Auto-Reports",
+  "nodes": [
+    { "id": "cronAgents", "type": "cron", "name": "Cron agentes" },
+    { "id": "listAgents", "type": "httpRequest", "name": "GET /api/agents?enabled=true" },
+    { "id": "startWF01", "type": "workflow", "name": "Start WF-01 (por agente)" },
+    { "id": "cronReports", "type": "cron", "name": "Cron reportes" },
+    { "id": "autoReports", "type": "httpRequest", "name": "POST /api/reports/auto" }
+  ],
+  "connections": {}
+}
+
+

@@ -1,0 +1,14 @@
+{
+  "name": "WF-02 Normalize & Validate",
+  "nodes": [
+    { "id": "getBinary", "type": "httpRequest", "name": "Get CSV/XLSX bin" },
+    { "id": "ingestMap", "type": "function", "name": "Apply ingest_map" },
+    { "id": "filterVars", "type": "function", "name": "Filter variables_enabled" },
+    { "id": "policy", "type": "switch", "name": "on_missing_variable" },
+    { "id": "updateJob", "type": "httpRequest", "name": "PATCH job status" },
+    { "id": "startWF03", "type": "workflow", "name": "Start WF-03" }
+  ],
+  "connections": {}
+}
+
+
