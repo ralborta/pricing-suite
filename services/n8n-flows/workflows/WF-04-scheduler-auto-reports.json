@@ -1,13 +1,101 @@
 {
   "name": "WF-04 Scheduler & Auto-Reports",
   "nodes": [
-    { "id": "cronAgents", "type": "cron", "name": "Cron agentes" },
-    { "id": "listAgents", "type": "httpRequest", "name": "GET /api/agents?enabled=true" },
-    { "id": "startWF01", "type": "workflow", "name": "Start WF-01 (por agente)" },
-    { "id": "cronReports", "type": "cron", "name": "Cron reportes" },
-    { "id": "autoReports", "type": "httpRequest", "name": "POST /api/reports/auto" }
+    {
+      "parameters": {
+        "triggerTimes": {
+          "item": [
+            { "mode": "everyX", "value": 1, "unit": "hours" }
+          ]
+        }
+      },
+      "id": "cronAgents",
+      "name": "Cron agentes",
+      "type": "n8n-nodes-base.scheduleTrigger",
+      "typeVersion": 1.1,
+      "position": [250, 200]
+    },
+    {
+      "parameters": {
+        "method": "GET",
+        "url": "={{$env.BFF_URL}}/api/agents",
+        "authentication": "genericCredentialType",
+        "genericAuthType": "httpHeaderAuth",
+        "sendHeaders": true,
+        "headerParameters": {
+          "parameters": [
+            { "name": "x-api-key", "value": "={{$env.BFF_API_KEY}}" }
+          ]
+        },
+        "qs": {
+          "parameters": [
+            { "name": "enabled", "value": "true" }
+          ]
+        },
+        "options": {}
+      },
+      "id": "listAgents",
+      "name": "GET /api/agents?enabled=true",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [450, 200]
+    },
+    {
+      "parameters": {
+        "workflowId": "={{$env.WF_01_ID}}",
+        "waitTillFinish": false
+      },
+      "id": "startWF01",
+      "name": "Start WF-01 (por agente)",
+      "type": "n8n-nodes-base.executeWorkflow",
+      "typeVersion": 1,
+      "position": [650, 200]
+    },
+    {
+      "parameters": {
+        "triggerTimes": {
+          "item": [
+            { "mode": "custom", "cronExpression": "0 8 * * MON" }
+          ]
+        }
+      },
+      "id": "cronReports",
+      "name": "Cron reportes",
+      "type": "n8n-nodes-base.scheduleTrigger",
+      "typeVersion": 1.1,
+      "position": [250, 400]
+    },
+    {
+      "parameters": {
+        "method": "POST",
+        "url": "={{$env.BFF_URL}}/api/reports/auto",
+        "authentication": "genericCredentialType",
+        "genericAuthType": "httpHeaderAuth",
+        "sendHeaders": true,
+        "headerParameters": {
+          "parameters": [
+            { "name": "x-api-key", "value": "={{$env.BFF_API_KEY}}" }
+          ]
+        },
+        "sendBody": true,
+        "bodyContentType": "json",
+        "jsonBody": "={\n  \"type\": \"weekly\",\n  \"dateRange\": {\n    \"from\": \"{{$today.minus({days: 7}).toISO()}}\",\n    \"to\": \"{{$today.toISO()}}\"\n  },\n  \"recipients\": {{$env.REPORT_RECIPIENTS}},\n  \"jobs\": []\n}"
+      },
+      "id": "autoReports",
+      "name": "POST /api/reports/auto",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [450, 400]
+    }
   ],
-  "connections": {}
+  "connections": {
+    "Cron agentes": { "main": [[ { "node": "GET /api/agents?enabled=true", "type": "main", "index": 0 } ]] },
+    "GET /api/agents?enabled=true": { "main": [[ { "node": "Start WF-01 (por agente)", "type": "main", "index": 0 } ]] },
+    "Cron reportes": { "main": [[ { "node": "POST /api/reports/auto", "type": "main", "index": 0 } ]] }
+  },
+  "active": false,
+  "settings": {},
+  "pinData": {}
 }
 
 

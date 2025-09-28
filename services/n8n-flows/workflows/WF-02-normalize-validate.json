@@ -1,14 +1,59 @@
 {
   "name": "WF-02 Normalize & Validate",
   "nodes": [
-    { "id": "getBinary", "type": "httpRequest", "name": "Get CSV/XLSX bin" },
-    { "id": "ingestMap", "type": "function", "name": "Apply ingest_map" },
-    { "id": "filterVars", "type": "function", "name": "Filter variables_enabled" },
-    { "id": "policy", "type": "switch", "name": "on_missing_variable" },
-    { "id": "updateJob", "type": "httpRequest", "name": "PATCH job status" },
-    { "id": "startWF03", "type": "workflow", "name": "Start WF-03" }
+    { "parameters": {}, "id": "manual", "name": "Manual Trigger", "type": "n8n-nodes-base.manualTrigger", "typeVersion": 1, "position": [250, 200] },
+    {
+      "parameters": { "method": "GET", "url": "={{$json.file_url || $env.LAST_UPLOAD_URL}}" },
+      "id": "getBinary",
+      "name": "Get CSV/XLSX bin",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [450, 200]
+    },
+    {
+      "parameters": {
+        "functionCode": "// aplica ingest_map y filtra variables_enabled\nconst ingestMap = $env.INGEST_MAP ? JSON.parse($env.INGEST_MAP) : {};\nconst variablesEnabled = $env.VARIABLES_ENABLED ? JSON.parse($env.VARIABLES_ENABLED) : [];\n// demo: retorna payload normalizado vacío\nreturn [{ normalized: {}, variablesEnabled }];"
+      },
+      "id": "ingestMap",
+      "name": "Apply ingest_map",
+      "type": "n8n-nodes-base.function",
+      "typeVersion": 2,
+      "position": [650, 200]
+    },
+    {
+      "parameters": {
+        "rules": {
+          "values": [
+            { "conditions": { "options": {}, "conditions": [{ "leftValue": "={{Object.keys($json.normalized||{}).length}}", "operation": "less\n", "rightValue": "1" }] }, "name": "missing" }
+          ]
+        }
+      },
+      "id": "policy",
+      "name": "on_missing_variable",
+      "type": "n8n-nodes-base.switch",
+      "typeVersion": 2,
+      "position": [850, 200]
+    },
+    {
+      "parameters": { "method": "PATCH", "url": "={{$env.BFF_URL}}/api/jobs/{{$env.JOB_ID || 'demo'}}", "sendBody": true, "bodyContentType": "json", "jsonBody": "={\n  \"status\": \"validated\"\n}" },
+      "id": "updateJob",
+      "name": "PATCH job status",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [1050, 200]
+    },
+    { "parameters": { "workflowId": "={{$env.WF_03_ID}}", "waitTillFinish": false }, "id": "startWF03", "name": "Start WF-03", "type": "n8n-nodes-base.executeWorkflow", "typeVersion": 1, "position": [1250, 200] }
   ],
-  "connections": {}
+  "connections": {
+    "Manual Trigger": { "main": [[ { "node": "Get CSV/XLSX bin", "type": "main", "index": 0 } ]] },
+    "Get CSV/XLSX bin": { "main": [[ { "node": "Apply ingest_map", "type": "main", "index": 0 } ]] },
+    "Apply ingest_map": { "main": [[ { "node": "on_missing_variable", "type": "main", "index": 0 } ]] },
+    "on_missing_variable": { "main": [[ { "node": "PATCH job status", "type": "main", "index": 0 } ]] },
+    "PATCH job status": { "main": [[ { "node": "Start WF-03", "type": "main", "index": 0 } ]] }
+  },
+  "active": false,
+  "settings": {},
+  "pinData": {}
 }
 
 

@@ -1,15 +1,67 @@
 {
   "name": "WF-01 Intake",
   "nodes": [
-    { "id": "githubTrigger", "type": "githubTrigger", "name": "GitHub Trigger" },
-    { "id": "imapTrigger", "type": "imapEmail", "name": "IMAP Trigger" },
-    { "id": "driveTrigger", "type": "googleDriveTrigger", "name": "Drive Trigger" },
-    { "id": "validate", "type": "if", "name": "Validar patrón de archivo" },
-    { "id": "uploadStorage", "type": "httpRequest", "name": "Upload Supabase Storage" },
-    { "id": "notifyBFF", "type": "httpRequest", "name": "POST /api/agents/:id/run" },
-    { "id": "startWF02", "type": "workflow", "name": "Start WF-02" }
+    {
+      "parameters": {},
+      "id": "manual",
+      "name": "Manual Trigger",
+      "type": "n8n-nodes-base.manualTrigger",
+      "typeVersion": 1,
+      "position": [250, 200]
+    },
+    {
+      "parameters": {
+        "method": "POST",
+        "url": "={{$env.STORAGE_PROXY_URL}}/intake/upload",
+        "authentication": "genericCredentialType",
+        "genericAuthType": "httpHeaderAuth",
+        "sendHeaders": true,
+        "headerParameters": {"parameters": [{"name":"x-api-key","value":"={{$env.BFF_API_KEY}}"}]},
+        "sendBody": true,
+        "bodyContentType": "json",
+        "jsonBody": "={\n  \"agent_id\": \"{{$env.AGENT_ID}}\",\n  \"source\": \"manual\",\n  \"file_url\": \"{{$json.file_url || ''}}\"\n}"
+      },
+      "id": "uploadStorage",
+      "name": "Upload Supabase Storage",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [500, 200]
+    },
+    {
+      "parameters": {
+        "method": "POST",
+        "url": "={{$env.BFF_URL}}/api/agents/{{$env.AGENT_ID}}/run",
+        "authentication": "genericCredentialType",
+        "genericAuthType": "httpHeaderAuth",
+        "sendHeaders": true,
+        "headerParameters": {"parameters": [{"name":"x-api-key","value":"={{$env.BFF_API_KEY}}"}]},
+        "sendBody": true,
+        "bodyContentType": "json",
+        "jsonBody": "={\n  \"job_id\": \"{{$json.job_id || 'demo-job'}}\",\n  \"payload\": {}\n}"
+      },
+      "id": "notifyBFF",
+      "name": "POST /api/agents/:id/run",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [750, 200]
+    },
+    {
+      "parameters": {"workflowId": "={{$env.WF_02_ID}}", "waitTillFinish": false},
+      "id": "startWF02",
+      "name": "Start WF-02",
+      "type": "n8n-nodes-base.executeWorkflow",
+      "typeVersion": 1,
+      "position": [1000, 200]
+    }
   ],
-  "connections": {}
+  "connections": {
+    "Manual Trigger": {"main": [[{"node": "Upload Supabase Storage", "type": "main", "index": 0}]]},
+    "Upload Supabase Storage": {"main": [[{"node": "POST /api/agents/:id/run", "type": "main", "index": 0}]]},
+    "POST /api/agents/:id/run": {"main": [[{"node": "Start WF-02", "type": "main", "index": 0}]]}
+  },
+  "active": false,
+  "settings": {},
+  "pinData": {}
 }
 
 

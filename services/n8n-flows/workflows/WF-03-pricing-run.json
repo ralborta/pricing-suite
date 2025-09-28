@@ -1,15 +1,56 @@
 {
   "name": "WF-03 Pricing Run",
   "nodes": [
-    { "id": "preview", "type": "httpRequest", "name": "ENGINE /pricing/preview" },
-    { "id": "saveArtifacts", "type": "httpRequest", "name": "Guardar artifacts (CSV diff)" },
-    { "id": "decision", "type": "if", "name": "flags críticos o auto_apply=false" },
-    { "id": "notifyReview", "type": "emailSend", "name": "Notificar revisión (UI)" },
-    { "id": "apply", "type": "httpRequest", "name": "ENGINE /pricing/apply" },
-    { "id": "exportCsv", "type": "httpRequest", "name": "Export CSV" },
-    { "id": "notifyDone", "type": "emailSend", "name": "Notificar resultado" }
+    { "parameters": {}, "id": "manual", "name": "Manual Trigger", "type": "n8n-nodes-base.manualTrigger", "typeVersion": 1, "position": [250, 200] },
+    {
+      "parameters": {
+        "method": "POST",
+        "url": "={{$env.ENGINE_URL}}/pricing/preview",
+        "sendBody": true,
+        "bodyContentType": "json",
+        "jsonBody": "={{$env.PREVIEW_BODY || '{\\n  \\\"ruleset_version\\\": \\\"v1.0\\\",\\n  \\\"channel\\\": \\\"retail\\\",\\n  \\\"modules_enabled\\\": [\\\"costos\\\",\\\"impuestos\\\",\\\"redondeo\\\"],\\n  \\\"variables_enabled\\\": [\\\"sku\\\",\\\"costo_base\\\",\\\"iva_pct\\\",\\\"markup_objetivo_pct\\\"],\\n  \\\"on_missing_variable\\\": \\\"warn\\\",\\n  \\\"defaults\\\": {\\\"iva_pct\\\":0.21,\\\"markup_objetivo_pct\\\":0.35},\\n  \\\"items\\\": [{\\\"sku\\\": \\\"ABC-1\\\", \\\"costo_base\\\": 1000}]\\n}'} }}"
+      },
+      "id": "preview",
+      "name": "ENGINE /pricing/preview",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [450, 200]
+    },
+    {
+      "parameters": {
+        "conditions": { "options": {}, "conditions": [ { "leftValue": "={{$json.items?.[0]?.flags?.length || 0}}", "operation": "larger", "rightValue": "0" } ] }
+      },
+      "id": "decision",
+      "name": "flags críticos o auto_apply=false",
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 2,
+      "position": [650, 200]
+    },
+    {
+      "parameters": { "method": "POST", "url": "={{$env.ENGINE_URL}}/pricing/apply", "sendBody": true, "bodyContentType": "json", "jsonBody": "={{$json}}" },
+      "id": "apply",
+      "name": "ENGINE /pricing/apply",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [850, 120]
+    },
+    {
+      "parameters": { "fromEmail": "={{$env.REPORT_FROM||'pricing@empresa.com'}}", "toEmail": "={{$env.REPORT_RECIPIENTS||'ops@empresa.com'}}", "subject": "Pricing necesita revisión", "text": "Se detectaron flags críticos en preview" },
+      "id": "notifyReview",
+      "name": "Notificar revisión (UI)",
+      "type": "n8n-nodes-base.emailSend",
+      "typeVersion": 2,
+      "position": [850, 280]
+    }
   ],
-  "connections": {}
+  "connections": {
+    "Manual Trigger": { "main": [[ { "node": "ENGINE /pricing/preview", "type": "main", "index": 0 } ]] },
+    "ENGINE /pricing/preview": { "main": [[ { "node": "flags críticos o auto_apply=false", "type": "main", "index": 0 } ]] },
+    "flags críticos o auto_apply=false": { "main": [[ { "node": "ENGINE /pricing/apply", "type": "main", "index": 0 } , { "node": "Notificar revisión (UI)", "type": "main", "index": 1 } ]] }
+  },
+  "active": false,
+  "settings": {},
+  "pinData": {}
 }
 
 
