@@ -1,18 +1,13 @@
 import type { Metadata } from "next";
-import { Geist, Geist_Mono } from "geist/font";
+import { GeistSans } from "geist/font/sans";
+import { GeistMono } from "geist/font/mono";
 import "./globals.css";
 import { Sidebar } from "@/components/sidebar";
 import { Topbar } from "@/components/topbar";
 
-const geistSans = Geist({
-  variable: "--font-geist-sans",
-  subsets: ["latin"],
-});
-
-const geistMono = Geist_Mono({
-  variable: "--font-geist-mono",
-  subsets: ["latin"],
-});
+// Variables CSS que expone el paquete geist/font
+// GeistSans.variable => --font-geist-sans
+// GeistMono.variable => --font-geist-mono
 
 export const metadata: Metadata = {
   title: "Create Next App",
@@ -25,8 +20,8 @@ export default function RootLayout({
   children: React.ReactNode;
 }>) {
   return (
-    <html lang="es">
-      <body className={`${geistSans.variable} ${geistMono.variable} antialiased bg-gray-50`}>        
+    <html lang="es" className={`${GeistSans.variable} ${GeistMono.variable}`}>
+      <body className={`${GeistSans.className} antialiased bg-gray-50`}>        
         <div className="min-h-dvh w-full grid md:grid-cols-[16rem_1fr]">
           <Sidebar />
           <div className="flex flex-col min-w-0">
