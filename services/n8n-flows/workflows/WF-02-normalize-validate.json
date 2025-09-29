@@ -22,20 +22,16 @@
     },
     {
       "parameters": {
-        "rules": {
-          "values": [
-            { "conditions": { "options": {}, "conditions": [{ "leftValue": "={{Object.keys($json.normalized||{}).length}}", "operation": "less\n", "rightValue": "1" }] }, "name": "missing" }
-          ]
-        }
+        "functionCode": "// Política simple: marca missing si no hay normalized.\nconst missing = Object.keys($json.normalized || {}).length < 1 ? 1 : 0;\nreturn [{ ...$json, missing }];"
       },
       "id": "policy",
-      "name": "on_missing_variable",
-      "type": "n8n-nodes-base.switch",
+      "name": "Policy (function)",
+      "type": "n8n-nodes-base.function",
       "typeVersion": 2,
       "position": [850, 200]
     },
     {
-      "parameters": { "method": "PATCH", "url": "={{$env.BFF_URL}}/api/jobs/{{$env.JOB_ID || 'demo'}}", "sendBody": true, "bodyContentType": "json", "jsonBody": "={\n  \"status\": \"validated\"\n}" },
+      "parameters": { "method": "PATCH", "url": "={{$env.BFF_URL}}/api/jobs/{{$env.JOB_ID || 'demo'}}", "sendBody": true, "bodyContentType": "json", "jsonBody": "={\n  \"status\": \"validated\",\n  \"metrics\": { \"missing\": {{$json.missing}} }\n}" },
       "id": "updateJob",
       "name": "PATCH job status",
       "type": "n8n-nodes-base.httpRequest",
