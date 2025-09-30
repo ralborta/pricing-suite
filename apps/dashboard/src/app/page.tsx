@@ -2,6 +2,7 @@ import { KpiCard } from "@/components/kpi-card";
 import { PhoneCall, Clock, TrendingUp, Users, AlertTriangle, Percent } from "lucide-react";
 import { DashboardCharts } from "@/components/dashboard-charts";
 import { PreviewButton } from "@/components/preview-button";
+import { ApplyButton } from "@/components/apply-button";
 
 const lineData = [
   { name: "Lun", value: 25 },
@@ -27,7 +28,10 @@ export default function Home() {
           <h1 className="text-2xl md:text-3xl font-bold">Dashboard</h1>
           <p className="text-sm text-gray-500">Resumen de actividad de la plataforma de pricing</p>
         </div>
-        <PreviewButton />
+        <div className="flex gap-2">
+          <PreviewButton />
+          <ApplyButton />
+        </div>
       </div>
 
       <div className="grid grid-cols-1 md:grid-cols-3 xl:grid-cols-3 gap-4">
